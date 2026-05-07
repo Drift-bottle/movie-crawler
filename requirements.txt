@@ -1,0 +1,7 @@
+httpx==0.28.1
+beautifulsoup4==4.14.3
+lxml==6.1.0
+chardet==7.4.3
+tenacity==9.1.4
+pandas==3.0.2
+playwright==1.57.0
