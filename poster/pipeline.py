@@ -9,7 +9,7 @@ import random
 class SaveData:
     """保存解析后的海报数据"""
     def __init__(self, logger=None):
-        self.logger = logger or logging.getLogger(__name__) # 获取 logger
+        self.logger = logger or logging.getLogger(__name__) # 设置 logger
 
     def _guess_extension(self, url: str):
         """
