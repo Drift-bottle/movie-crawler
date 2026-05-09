@@ -1,5 +1,5 @@
 from movie.utils import logging_configuration, get_position_with_edge_login
-from pipelines import SaveData
+from pipeline import SaveData
 import asyncio
 
 
