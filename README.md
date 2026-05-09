@@ -36,7 +36,12 @@ movie-crawler/
 │ ├── main.py # 入口文件
 │ ├── models.py # 数据模型（dataclass）
 │ └── pipeline.py # 数据存储与校验
-├── poster/ # 子项目：海报下载（规划中）
+├── poster/ # 子项目：海报下载
+│ ├── __init__.py
+│ ├── crawler.py 
+│ ├── main.py 
+│ ├── models.py 
+│ └── pipeline.py 
 ├── reviews/ # 子项目：短评采集（规划中）
 ├── storage/ # 数据产出目录（已在 .gitignore 中忽略）
 ├── tests/ # 测试脚本
