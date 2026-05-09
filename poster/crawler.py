@@ -12,7 +12,7 @@ from models import PosterUrl
 # ------继承请求类------
 class Poster(Requests):
     def __init__(self, cookies: Cookies=None, logger=None):
-        super().__init__(cookies=cookies, logger=logger)
+        super().__init__(cookies=cookies, logger=logger) # 调用父类 Requests 的 __init__ 方法，传入 cookies 和 logger 依赖
         self._image_semaphore = asyncio.Semaphore(4) # 限制同时请求海报 url 的并发数为 4
 
     @retry(
@@ -54,7 +54,7 @@ class MoviePosterCrawler:
     def __init__(self, logger=None):
         self.all_data = set() # 用于标题和海报url数据去重
         self.data = [] # 储存最终电影数据
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger(__name__) # 设置 logger
 
     # 获取 title 和 post_url
     @logger

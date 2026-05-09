@@ -9,7 +9,7 @@ import random
 class SaveData:
     """保存解析后的海报数据"""
     def __init__(self, logger=None):
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger(__name__) # 获取 logger
 
     def _guess_extension(self, url: str):
         """
@@ -32,13 +32,14 @@ class SaveData:
         for suffix in ext_map:
             if suffix in list_url:
                 return ext_map.get(suffix, '.jpg')
+        # 未匹配到任何已知图片后缀时，回退为最常见的 JPG 格式作为保底
         return '.jpg'
 
-    # 并发函数
+    # 处理单张海报的完整下载链路：校验URL → 请求图片 → 类型检查 → 返回文件路径与二进制数据
     @logger
     async def download_image(self, title, url, i, resp, headers, save_doc, **kwargs):
         """
-        并发下载海报到文件夹
+        并发获取海报图像二进制数据
         :param title: 海报名称
         :param url: 海报 url
         :param i: 下载的海报的顺序数 - 1
@@ -76,7 +77,7 @@ class SaveData:
                 self.logger.error(f"❌第 {i + 1} 张海报: {type(e).__name__}: {e}")
                 raise e
 
-    # 保存海报
+    # 总控流程：抓取解析 → 并发下载 → 汇总结果 → 保存海报到本地文件夹
     @logger
     async def save_to_document(self, save_doc, key_message, headers, cookies, **kwargs) -> None:
         """
@@ -104,6 +105,7 @@ class SaveData:
             ]
             # 执行并发任务
             poster_list = await asyncio.gather(*tasks)
+            # 保存海报到文件夹
             i = 0
             for result in poster_list:
                 i += 1
