@@ -101,7 +101,7 @@ async def get_position_with_edge_login(target_domains: List[str], **kwargs):
         :param kwargs: logger(供 @logger 使用)
     """
     # 获取 logger
-    courier_logger = kwargs.pop('logger', logging.getLogger(__name__))
+    courier_logger = kwargs.pop('cookies_logger', logging.getLogger(__name__))
     async with async_playwright() as p:
         # 清除上一次获取的 cookies
         _current_cookies.clear()
