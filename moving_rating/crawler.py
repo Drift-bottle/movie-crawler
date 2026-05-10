@@ -17,6 +17,7 @@ class MovieRatingCrawler:
         self.data = [] # 储存最终电影数据
         self.logger = logger or logging.getLogger(__name__) # 设置 logger
 
+    # 获取 title 和 rating
     @logger
     async def fetch_page(self, key_message: str, **kwargs):
         """
