@@ -42,7 +42,12 @@ movie-crawler/
 │ ├── main.py 
 │ ├── models.py 
 │ └── pipeline.py 
-├── reviews/ # 子项目：短评采集（规划中）
+├── reviews/ # 子项目：短评采集
+│ ├── __init__.py
+│ ├── crawler.py 
+│ ├── main.py 
+│ ├── models.py 
+│ └── pipeline.py 
 ├── storage/ # 数据产出目录（已在 .gitignore 中忽略）
 ├── tests/ # 测试脚本
 │ ├── test_client.py # HTTP 客户端连通性测试
