@@ -21,7 +21,7 @@ def logging_configuration(logger_name, log_file_name: str):
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
 
-    # 避免重复, 添加处理器
+    # 避免重复添加处理器
     if logger.handlers:
         return logger
 
