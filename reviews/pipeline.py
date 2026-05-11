@@ -25,7 +25,7 @@ class SaveData:
         try:
             df = pd.read_csv(filepath)
         except pd.errors.EmptyDataError as e:
-            self.logger.error(f"❌加载 csv 数据失败, 异常: {e}")
+            self.logger.error(f"❌加载 csv 数据失败 | {type(e).__name__}: {e}")
             return False
         return not df.empty
 
