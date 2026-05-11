@@ -128,7 +128,7 @@ class MoviePosterCrawler:
                             self.logger.info("已爬取最后一页，停止翻页")
                             break
                     except Exception as e:
-                        self.logger.error(f"❌解析异常: {e}")
+                        self.logger.error(f"❌解析异常 | {type(e).__name__}: {e}")
                         break
                 else:
                     break
