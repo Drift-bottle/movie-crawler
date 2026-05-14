@@ -33,16 +33,20 @@ class Poster(Requests):
         headers['referer'] = url
         async with self._image_semaphore: # 使用信号量控制并发
             poster_resp = await self.client.get(url, headers=headers, timeout=15)
+
+            hex_str = poster_resp.content[:100].hex()
+            # 把每两个十六进制字符后面加一个空格，方便阅读
+            formatted_hex = ' '.join(hex_str[i:i + 2] for i in range(0, len(hex_str), 2))
             try:
                 if poster_resp.status_code == 200:
                     content_type = poster_resp.headers.get('content-type', '')
                     return poster_resp.content, content_type
                 else:
-                    err = f"❌请求失败, 状态码: {poster_resp.status_code}"
+                    err = f"❌请求失败, 状态码: {poster_resp.status_code} | 响应内容前100字节(16进制): {formatted_hex}"
                     self.logger.error(err)
                     raise Exception(err)
             except Exception as e:
-                self.logger.error(f"❌捕获到的异常: {type(e).__name__}: {e}")
+                self.logger.error(f"❌捕获到的异常: {type(e).__name__}: {e} | 响应内容前100字节(16进制): {formatted_hex}")
                 raise e
 
 
