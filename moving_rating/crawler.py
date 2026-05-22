@@ -22,8 +22,9 @@ class MovieRatingCrawler:
     async def fetch_page(self, key_message: str, **kwargs):
         """
         抓取+解析网页数据
-        :param key_message: 目标网站页面的一个关键信息
-        :param kwargs: headers请求头, logger(供 @logger 使用)
+        Args:
+            key_message: 目标网站页面的一个关键信息
+            kwargs: headers请求头, logger(供 @logger 使用)
         """
         page_num = 1
         url_list = ['https://...'] # 储存要请求的 url

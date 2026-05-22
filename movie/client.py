@@ -56,8 +56,9 @@ class Requests:
     async def can_fetch(self, url: str, **kwargs):
         """
         判断给定的 user-agent 是否允许抓取url
-        :param url: 用于检验是否允许爬取的 url
-        :param kwargs: headers请求头, logger(供 @logger 使用)
+        Args:
+            url: 用于检验是否允许爬取的 url
+            kwargs: headers请求头, logger(供 @logger 使用)
         """
         headers = kwargs.get('headers', {})
         user_agent = headers.get('User-Agent', 'Mozilla/5.0 ...')
@@ -81,7 +82,8 @@ class Requests:
     def smart_encoding_detect(self, content: bytes):
         """
             智能编码检测器, 集成 Fallback 逻辑
-            :param content: 目标网站返回的 bytes数据
+            Args:
+                content: 目标网站返回的 bytes数据
         """
         self.logger.debug(f"调试: smart_encoding_detect 被调用! 内容长度: {len(content)}")
 
@@ -116,9 +118,10 @@ class Requests:
     @logger
     async def inter_face(self, url: str, key_message: str, **kwargs):
         """
-            :param url: 用于发送请求的 url
-            :param key_message: 目标网站页面的一个关键信息
-            :param kwargs: headers请求头, logger(供 @logger 使用)
+        Args:
+            url: 用于发送请求的 url
+            key_message: 目标网站页面的一个关键信息
+            kwargs: headers请求头, logger(供 @logger 使用)
         """
         # 发送请求
         resp = await self.client.get(url, **kwargs)

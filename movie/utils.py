@@ -14,8 +14,9 @@ movie-crawler 通用工具模块:
 # ------手动配置日志------
 def logging_configuration(logger_name, log_file_name: str):
     """
-    :param logger_name: 创建的 Logger 名称
-    :param log_file_name: 日志文件的名称
+    Args:
+        logger_name: 创建的 Logger 名称
+        log_file_name: 日志文件的名称
     """
     # 创建 Logger
     logger = logging.getLogger(logger_name)
@@ -97,8 +98,9 @@ _current_cookies = httpx.Cookies()
 async def get_position_with_edge_login(target_domains: List[str], **kwargs):
     """
         复用edge登录态获取cookies
-        :param target_domains: 储存目标网站域的列表
-        :param kwargs: logger(供 @logger 使用)
+        Args:
+            target_domains: 储存目标网站域的列表
+            kwargs: logger(供 @logger 使用)
     """
     # 获取 logger
     courier_logger = kwargs.pop('cookies_logger', logging.getLogger(__name__))

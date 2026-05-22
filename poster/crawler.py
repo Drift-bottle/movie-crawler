@@ -25,8 +25,9 @@ class Poster(Requests):
     async def request_poster_url(self, url: str, **kwargs):
         """
         请求海报 url
-        :param url: 海报 url
-        :param kwargs: headers请求头, logger(供 @logger 使用)
+        Args:
+            url: 海报 url
+            kwargs: headers请求头, logger(供 @logger 使用)
         """
         # 设置请求头
         headers = kwargs.get("headers", {})
@@ -65,9 +66,10 @@ class MoviePosterCrawler:
     async def fetch_page(self, resp, key_message, **kwargs):
         """
         抓取+解析网页数据
-        :param resp: 用于请求的 client
-        :param key_message: 目标网站关键词
-        :param kwargs: headers请求头, logger(供 @logger 使用)
+        Args:
+            resp: 用于请求的 client
+            key_message: 目标网站关键词
+            kwargs: headers请求头, logger(供 @logger 使用)
         """
         page_num = 1
         url_list = ['...'] # 储存要请求的 url

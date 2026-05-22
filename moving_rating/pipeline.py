@@ -40,7 +40,7 @@ class SaveData:
         if data is None:
             return False
         elif isinstance(data, (dict, list, str)):
-            if data is str and len(data.strip()) > 0:
+            if isinstance(data, str) and len(data.strip()) > 0:
                 return True
             elif len(data) > 0:
                 return True
