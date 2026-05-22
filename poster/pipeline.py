@@ -14,7 +14,8 @@ class SaveData:
     def _guess_extension(self, url: str):
         """
         从 url 后缀猜测文件扩展名
-        :param url: 海报url
+        :Args:
+            url: 海报url
         """
         ext_map = {
             'jpg': '.jpg',
@@ -40,14 +41,16 @@ class SaveData:
     async def download_image(self, title, url, i, resp, headers, save_doc, **kwargs):
         """
         并发获取海报图像二进制数据
-        :param title: 海报名称
-        :param url: 海报 url
-        :param i: 下载的海报的顺序数 - 1
-        :param resp: 用于请求的 client
-        :param headers: 请求头
-        :param save_doc: 储存文件的文件夹
-        :param kwargs: logger(供 @logger 使用)
-        :return: file_path, image_bytes
+        Args:
+            title: 海报名称
+            url: 海报 url
+            i: 下载的海报的顺序数 - 1
+            resp: 用于请求的 client
+            headers: 请求头
+            save_doc: 储存文件的文件夹
+            kwargs: logger(供 @logger 使用)
+        Returns:
+            file_path, image_bytes
         """
         await asyncio.sleep(random.uniform(0, 1))  # 0~1秒之间的随机抖动
         self.logger.info(f"---已将第 {i + 1} 张海报的 URL 加入爬取队列---")
@@ -82,11 +85,12 @@ class SaveData:
     async def save_to_document(self, save_doc, key_message, headers, cookies, **kwargs) -> None:
         """
         将海报保存到文件夹
-        :param save_doc: 储存文件的文件夹
-        :param key_message: 目标网站关键词
-        :param headers: 请求头
-        :param cookies: 所需的 cookies
-        :param kwargs: logger(供 @logger 使用)
+        Args:
+            save_doc: 储存文件的文件夹
+            key_message: 目标网站关键词
+            headers: 请求头
+            cookies: 所需的 cookies
+            kwargs: logger(供 @logger 使用)
         """
         async with Poster(cookies=cookies, logger=self.logger) as resp:
             poster_obj = MoviePosterCrawler(self.logger)

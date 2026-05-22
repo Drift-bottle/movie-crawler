@@ -18,7 +18,8 @@ class SaveData:
     def is_csv_has_data(self, filepath):
         """
         判断是否存入 csv 文件
-        :param filepath: 指定的保存到的文件路径
+        Args:
+            filepath: 指定的保存到的文件路径
         """
         if not os.path.isfile(filepath) or os.path.getsize(filepath) == 0:
             return False
@@ -32,9 +33,10 @@ class SaveData:
     def save_to_csv(self, origin_file, static_file, filepath_start) -> None :
         """
         将数据储存到CSV文件中 | 进行评分统计
-        :param origin_file: 保存转换后的初始数据的 csv 文件
-        :param static_file: 保存统计结果的 csv 文件
-        :param filepath_start: 指定的保存到的文件路径的开头(eg: 'D:\\')
+        Args:
+            origin_file: 保存转换后的初始数据的 csv 文件
+            static_file: 保存统计结果的 csv 文件
+            filepath_start: 指定的保存到的文件路径的开头(eg: 'D:\\')
         """
         if len(self.data) == 0:
             err = "❌ 未爬取到任何数据"
