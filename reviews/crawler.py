@@ -23,8 +23,9 @@ class MovieReviewCrawler:
     async def fetch_page(self, key_message, **kwargs):
         """
         抓取+解析网页数据
-        :param key_message: 目标网站关键词
-        :param kwargs: headers请求头, logger(供 @logger 使用)
+        Args:
+            key_message: 目标网站关键词
+            kwargs: headers请求头, logger(供 @logger 使用)
         """
         page_num = 1
         url_list = ['...']  # 储存要请求的 url
