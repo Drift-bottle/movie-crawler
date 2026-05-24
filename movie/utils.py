@@ -12,7 +12,7 @@ movie-crawler 通用工具模块:
 """
 
 # ------手动配置日志------
-def logging_configuration(logger_name, log_file_name: str):
+def logging_configuration(logger_name=None, log_file_name=None):
     """
     Args:
         logger_name: 创建的 Logger 名称
