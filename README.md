@@ -53,6 +53,7 @@ movie-crawler/
 │ ├── test_client.py # HTTP 客户端连通性测试
 │ ├── test_logger.py # 日志装饰器测试
 │ └── test_playwright.py # Playwright 环境连通性测试
+├── LICENSE
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
