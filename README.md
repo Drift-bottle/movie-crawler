@@ -190,9 +190,4 @@ python test_playwright.py    # 测试 Playwright 环境
 ### 法律风险参考资料
 - [中国爬虫违法违规案例汇总](https://github.com/HiddenStrawberry/Crawler_Illegal_Cases_In_China)
 
-## 关于商业使用的特别声明
-尽管本项目采用 Apache License 2.0 许可证，该许可证允许商业使用，但**作者本人强烈建议**将本项目仅用于个人学习、研究及非商业目的。
-本项目是作者独立开发，并在 AI 辅助下进行架构优化与工程实践，为展示个人技术能力创建的。作者现阶段专注于个人学习与技术研究，暂不参与商业合作或提供相关授权。
-
-
 ### 如果你遇到与本项目相关的问题，欢迎在 [Issues](https://github.com/Drift-bottle/movie-crawler/issues) 提出。
