@@ -1,6 +1,8 @@
 from movie.client import Requests
 from movie.utils import logger
+
 from bs4 import BeautifulSoup
+
 import asyncio
 import logging
 import random
@@ -22,6 +24,7 @@ class MovieRatingCrawler:
     async def fetch_page(self, key_message: str, **kwargs):
         """
         抓取+解析网页数据
+
         Args:
             key_message: 目标网站页面的一个关键信息
             kwargs: headers请求头, logger(供 @logger 使用)
