@@ -1,11 +1,14 @@
 from movie.client import Requests
 from movie.utils import logger
+from models import MovieReview
+
 from httpx import Cookies
 from bs4 import BeautifulSoup
+
 import asyncio
 import logging
 import random
-from models import MovieReview
+
 
 
 # ------设置解析类------
@@ -23,6 +26,7 @@ class MovieReviewCrawler:
     async def fetch_page(self, key_message, **kwargs):
         """
         抓取+解析网页数据
+
         Args:
             key_message: 目标网站关键词
             kwargs: headers请求头, logger(供 @logger 使用)

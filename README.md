@@ -21,7 +21,7 @@
 - 🔄 **指数退避重试**：基于 `tenacity` 的健壮重试机制，抵御网络波动
 - 📝 **双通道日志**：控制台 INFO 级别输出 + 文件 DEBUG 级别持久化，按子项目独立管理
 - 🧩 **数据模型化**：使用 `dataclass` 定义数据结构，类型安全，支持自定义拓展为 JSON 字典序列化
-- 💉 **依赖注入设计**：Logger 与 Cookies 通过参数注入，子项目独立配置，互不干扰
+- 💉 **依赖注入设计**：Logger 与 Cookies 通过参数注入
 
 ### 📂 项目结构
 ```bash
@@ -78,15 +78,8 @@ playwright install chrome
 ```
 > **说明**：`chrome` 指的是 Playwright 1.57.0 默认使用的 Chrome for Testing，并非系统自带的 Chrome 浏览器。
 <details> 
-<summary>💡 点此查看：如果报错或安装失败怎么办？</summary>
+<summary>💡 点此查看：下载速度慢或安装失败怎么办？</summary>
 
-**1. 提示 `"chrome" is already installed` (如已有旧版 Chromium)**
-请使用 --force 参数强制覆盖安装：
-```bash
-playwright install --force chrome
-```
-
-**2. 下载速度慢或无法连接**
 可临时设置国内镜像加速（以 npmmirror.com 为例）：
 ```bash
 # Windows PowerShell
@@ -96,23 +89,18 @@ playwright install chrome
 >镜像为临时方案，若不生效请还原为官方源后重试。
 </details>
 
-## 配置与运行
-### 确保 Edge 浏览器已登录目标网站
-### 启动 Edge 远程调试模式（默认路径）
+### 配置与运行
+#### 确保 Edge 浏览器已登录目标网站
+#### 启动 Edge 远程调试模式（默认路径）
 ```bash
 & "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --remote-debugging-port=9222 --user-data-dir="D:\edge_debug_profile"
 ```
+> D:\edge_debug_profile 所在位置路径为自定义路径，此处仅为示例
+
 如果上述命令提示找不到路径，请尝试手动定位 Edge 的安装目录：
 - 1.在 Windows 开始菜单搜索 `Edge`，右键选择“打开文件位置”
 - 2.在弹出的文件夹中，再次右键 Edge 快捷方式 → “打开文件所在的位置”
 - 3.复制地址栏的完整路径，替换命令中的路径部分即可
-
-### 运行榜单数据采集：
-```bash
-cd moving_rating
-python main.py
-```
-### 采集完成后，数据文件将保存在 storage/ 目录下，运行日志可在对应的 .log 文件中查看。
 
 ### 运行测试
 ```bash
@@ -140,10 +128,9 @@ python test_playwright.py    # 测试 Playwright 环境
 ### 响应编码兼容
 - **难点**：目标网站可能缺少 charset 声明或声明与实际不符，导致解码失败
 - **方案**:：实现 smart_encoding_detect 三层 Fallback 机制：
-
-- **1. chardet.detect 高置信度优先匹配**
-- **2. 手动遍历常见编码（utf-16, gb2312, gbk, utf-8）依次尝试**
-- **3. 最终 Fallback 使用 utf-8 + errors='replace' 兜底**
+  - **1. chardet.detect 高置信度优先匹配**
+  - **2. 手动遍历常见编码（utf-16, gb2312, gbk, utf-8）依次尝试**
+  - **3. 最终 Fallback 使用 utf-8 + errors='replace' 兜底**
 
 ### 异步装饰器计时
 - **难点**：同步装饰器无法捕获异步函数的实际网络耗时
