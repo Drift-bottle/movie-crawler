@@ -1,5 +1,6 @@
 from movie.utils import logger
 from crawler import Poster, MoviePosterCrawler
+
 import asyncio
 import logging
 import os
