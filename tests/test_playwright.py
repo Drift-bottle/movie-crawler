@@ -1,7 +1,11 @@
-import asyncio
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+import pytest
+
+import asyncio
 
 
+@pytest.mark.asyncio
+@pytest.mark.smoke
 async def test_playwright_connectivity():
     """Playwright 内核连通性测试"""
     async with async_playwright() as p:

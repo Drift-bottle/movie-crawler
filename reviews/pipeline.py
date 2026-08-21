@@ -6,18 +6,19 @@ import os
 
 class SaveData:
     """保存解析后的短评数据"""
-    def __init__(self, data, logger=None):
-        self.data = data # 解析后的数据
-        self.logger = logger or logging.getLogger(__name__) # 设置 logger
+    def __init__(self, data, logger=None) -> None:
+        self._data = data # 解析后的数据
+        self._logger = logger or logging.getLogger(__name__) # 设置 logger
 
     def _row_generator(self):
         """逐个转换解析后的短评数据"""
-        for movie in self.data:
+        for movie in self._data:
             yield movie.to_dict() if hasattr(movie, 'to_dict') else movie
 
-    def is_csv_has_data(self, filepath):
+    def is_csv_has_data(self, filepath: str) -> bool:
         """
         判断是否存入 csv 文件
+
         Args:
             filepath: 指定的保存到的文件路径
         """
@@ -26,21 +27,22 @@ class SaveData:
         try:
             df = pd.read_csv(filepath)
         except pd.errors.EmptyDataError as e:
-            self.logger.error(f"❌加载 csv 数据失败 | {type(e).__name__}: {e}")
+            self._logger.error(f"❌加载 csv 数据失败 | {type(e).__name__}: {e}")
             return False
         return not df.empty
 
-    def save_to_csv(self, origin_file, static_file, filepath_start) -> None :
+    def save_to_csv(self, origin_file: str, static_file: str, filepath_start: str) -> None :
         """
         将数据储存到CSV文件中 | 进行评分统计
+
         Args:
             origin_file: 保存转换后的初始数据的 csv 文件
             static_file: 保存统计结果的 csv 文件
             filepath_start: 指定的保存到的文件路径的开头(eg: 'D:\\')
         """
-        if len(self.data) == 0:
+        if len(self._data) == 0:
             err = "❌ 未爬取到任何数据"
-            self.logger.error(err)
+            self._logger.error(err)
             raise Exception(err)
 
         # 设置 origin_file 路径
@@ -48,7 +50,7 @@ class SaveData:
         # 将转换后的初始数据保存到 csv
         with open(origin_path, 'w', newline='', encoding='utf-8') as f:
             # 获取表头
-            fieldnames = list(self.data[0].to_dict().keys())
+            fieldnames = list(self._data[0].to_dict().keys())
             # 将字典形式的数据写入文件
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             # 写入表头
@@ -57,7 +59,7 @@ class SaveData:
             writer.writerows(self._row_generator())
 
         if self.is_csv_has_data(origin_path):
-            self.logger.info(f"✅已成功将数据储存到 {origin_path}")
+            self._logger.info(f"✅已成功将数据储存到 {origin_path}")
 
             # 读取csv文件
             df = pd.read_csv(origin_path)
@@ -78,8 +80,8 @@ class SaveData:
             with open(static_path, 'w', newline='', encoding='utf-8') as f:
                 result.to_csv(f, index=False)
             if self.is_csv_has_data(static_path):
-                self.logger.info(f"✅已成功将数据储存到 {static_path}")
+                self._logger.info(f"✅已成功将数据储存到 {static_path}")
             else:
-                self.logger.error(f"❌{static_path}中没有数据")
+                self._logger.error(f"❌{static_path}中没有数据")
         else:
-            self.logger.error(f"❌{origin_path}中没有数据")
+            self._logger.error(f"❌{origin_path}中没有数据")
