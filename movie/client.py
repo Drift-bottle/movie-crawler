@@ -23,9 +23,9 @@ class Requests:
         - robots.txt 校验
         - 基于 tenacity 的指数退避重试
     """
-    def __init__(self, cookies: Cookies=None, logger=None):
+    def __init__(self, cookies: Cookies=None, logger=None) -> None:
         # 设置请求前钩子, 统一会话
-        self.client = httpx.AsyncClient(
+        self._client = httpx.AsyncClient(
             default_encoding=self.smart_encoding_detect,
             cookies=cookies,
             event_hooks={
@@ -35,7 +35,7 @@ class Requests:
             timeout=10
         )
         # 设置 logger
-        self.logger = logger or logging.getLogger(__name__)
+        self._logger = logger or logging.getLogger(__name__)
 
     # 请求钩子
     async def _hook_start_time(self, request: httpx.Request) -> None:
@@ -45,23 +45,23 @@ class Requests:
     async def _hook_end_time(self, response: httpx.Response) -> None:
         start = float(response.request.headers.get('x-by-start', 0))
         sum_time = time.perf_counter() - start
-        self.logger.debug(f"{response.request.url}耗时: {sum_time:.6f}秒")
+        self._logger.debug(f"{response.request.url}耗时: {sum_time:.6f}秒")
 
     # 上下文管理器
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.client.aclose()
+        await self._client.aclose()
 
     # 判断网页是否允许被抓取(url/robots.txt)
-    async def can_fetch(self, url: str, **kwargs):
+    async def can_fetch(self, url: str, **kwargs) -> bool | None:
         """
         判断给定的 user-agent 是否允许抓取url
 
         Args:
             url: 用于检验是否允许爬取的 url
-            kwargs: headers请求头, logger(供 @logger 使用)
+            **kwargs: headers请求头, logger(供 @logger 使用)
         """
         headers = kwargs.get('headers', {})
         user_agent = headers.get('User-Agent', 'Mozilla/5.0 ...')
@@ -77,19 +77,19 @@ class Requests:
         try:
             rp.read()
         except Exception as e:
-            self.logger.error(f"❌读取 robots.txt 失败 | {type(e).__name__}: {e}")
+            self._logger.error(f"❌读取 robots.txt 失败 | {type(e).__name__}: {e}")
             raise e
 
         return rp.can_fetch(user_agent, url) # 返回True,则允许爬取
 
-    def smart_encoding_detect(self, content: bytes):
+    def smart_encoding_detect(self, content: bytes) -> str | None:
         """
             智能编码检测器, 集成 Fallback 逻辑
 
             Args:
                 content: 目标网站返回的 bytes数据
         """
-        self.logger.debug(f"调试: smart_encoding_detect 被调用! 内容长度: {len(content)}")
+        self._logger.debug(f"调试: smart_encoding_detect 被调用! 内容长度: {len(content)}")
 
         # 先用 chardet 检测, 获取置信度
         result = chardet.detect(content[:4000])
@@ -107,7 +107,7 @@ class Requests:
                 content.decode(enc)
                 return enc
             except Exception as e:
-                self.logger.error(f"❌手动解码失败: 尝试的编码: {enc} | {type(e).__name__}: {e}")
+                self._logger.error(f"❌手动解码失败: 尝试的编码: {enc} | {type(e).__name__}: {e}")
 
         return None # 如果全部失败, 让 httpx 用 utf-8
 
@@ -120,15 +120,15 @@ class Requests:
         reraise=True # 达到最大重试次数后抛出原始异常
     )
     @logger
-    async def inter_face(self, url: str, key_message: str, **kwargs):
+    async def inter_face(self, url: str, key_message: str, **kwargs) -> str | None:
         """
         Args:
             url: 用于发送请求的 url
             key_message: 目标网站页面的一个关键信息
-            kwargs: headers请求头, logger(供 @logger 使用)
+            **kwargs: headers请求头, logger(供 @logger 使用)
         """
         # 发送请求
-        resp = await self.client.get(url, **kwargs)
+        resp = await self._client.get(url, **kwargs)
 
         response_text = None
         # 尝试直接获取文本
@@ -142,7 +142,7 @@ class Requests:
                     response_text = raw_content.decode(enc)
                     break
                 except Exception as e:
-                    self.logger.error(f"❌手动解码失败: 尝试的编码: {enc} | {type(e).__name__}: {e}")
+                    self._logger.error(f"❌手动解码失败: 尝试的编码: {enc} | {type(e).__name__}: {e}")
                     continue
             else:
                 # 当所有解码都失败时, 用 chardet 再次解码
@@ -157,14 +157,14 @@ class Requests:
             if resp.status_code == 200:
                 if key_message not in response_text:
                     err = f"❌ 状态码为200,但可能遭遇反爬"
-                    self.logger.error(err)
+                    self._logger.error(err)
                     raise Exception(err)
                 else:
                     return response_text
             else:
                 err = f"❌请求失败,状态码；{resp.status_code} | 响应预览: {response_text[:500]}"
                 # 打印前500个字符,查看是否包含异常提示
-                self.logger.error(err)
+                self._logger.error(err)
         except Exception as e:
-            self.logger.error(f"❌出现异常 | {type(e).__name__}: {e}")
+            self._logger.error(f"❌出现异常 | {type(e).__name__}: {e}")
             raise e

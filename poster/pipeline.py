@@ -1,21 +1,26 @@
 from movie.utils import logger
 from crawler import Poster, MoviePosterCrawler
 
+from httpx import Cookies
+
 import asyncio
 import logging
 import os
 import random
 
+
 # ------设置保存类------
 class SaveData:
     """保存解析后的海报数据"""
-    def __init__(self, logger=None):
-        self.logger = logger or logging.getLogger(__name__) # 设置 logger
+    def __init__(self, logger=None) -> None:
+        self._logger = logger or logging.getLogger(__name__) # 设置 logger
 
-    def _guess_extension(self, url: str):
+    @staticmethod
+    def _guess_extension(url: str) -> str:
         """
         从 url 后缀猜测文件扩展名
-        :Args:
+
+        Args:
             url: 海报url
         """
         ext_map = {
@@ -39,9 +44,19 @@ class SaveData:
 
     # 处理单张海报的完整下载链路：校验URL → 请求图片 → 类型检查 → 返回文件路径与二进制数据
     @logger
-    async def download_image(self, title, url, i, resp, headers, save_doc, **kwargs):
+    async def download_image(
+            self,
+            title: str,
+            url: str,
+            i: int,
+            resp,
+            headers: dict,
+            save_doc: str,
+            **kwargs
+    ) -> tuple | str | None:
         """
         并发获取海报图像二进制数据
+
         Args:
             title: 海报名称
             url: 海报 url
@@ -49,12 +64,13 @@ class SaveData:
             resp: 用于请求的 client
             headers: 请求头
             save_doc: 储存文件的文件夹
-            kwargs: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
+
         Returns:
             file_path, image_bytes
         """
         await asyncio.sleep(random.uniform(0, 1))  # 0~1秒之间的随机抖动
-        self.logger.info(f"---已将第 {i + 1} 张海报的 URL 加入爬取队列---")
+        self._logger.info(f"---已将第 {i + 1} 张海报的 URL 加入爬取队列---")
 
         # 获取海报url
         poster_url = url
@@ -75,26 +91,34 @@ class SaveData:
                 # 获取完整路径
                 pic_extension = self._guess_extension(poster_url)
                 file_path = os.path.join(save_doc, poster_name + pic_extension)
-                self.logger.info(f"✅成功获取第 {i + 1} 张海报的二进制数据")
+                self._logger.info(f"✅成功获取第 {i + 1} 张海报的二进制数据")
                 return file_path, image_bytes
             except Exception as e:
-                self.logger.error(f"❌第 {i + 1} 张海报: {type(e).__name__}: {e}")
+                self._logger.error(f"❌第 {i + 1} 张海报: {type(e).__name__}: {e}")
                 raise e
 
     # 总控流程：抓取解析 → 并发下载 → 汇总结果 → 保存海报到本地文件夹
     @logger
-    async def save_to_document(self, save_doc, key_message, headers, cookies, **kwargs) -> None:
+    async def save_to_document(
+            self,
+            save_doc: str,
+            key_message: str,
+            headers: dict,
+            cookies: Cookies | None,
+            **kwargs
+    ) -> None:
         """
         将海报保存到文件夹
+
         Args:
             save_doc: 储存文件的文件夹
             key_message: 目标网站关键词
             headers: 请求头
             cookies: 所需的 cookies
-            kwargs: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
         """
-        async with Poster(cookies=cookies, logger=self.logger) as resp:
-            poster_obj = MoviePosterCrawler(self.logger)
+        async with Poster(cookies=cookies, logger=self._logger) as resp:
+            poster_obj = MoviePosterCrawler(self._logger)
             # 获取 title 和 poster_url
             ori_data = await poster_obj.fetch_page(resp, key_message, headers=headers, logger=self.logger)
             # 自动创建文件夹
@@ -105,7 +129,7 @@ class SaveData:
 
             # 创建并发任务
             tasks = [
-                self.download_image(title, url, i, resp, headers, save_doc, logger=self.logger)
+                self.download_image(title, url, i, resp, headers, save_doc, logger=self._logger)
                 for i, (title, url) in enumerate(poster_url_list)
             ]
             # 执行并发任务
@@ -118,7 +142,7 @@ class SaveData:
                     file_path, image_bytes = result
                     with open(file_path, 'wb') as f:
                         f.write(image_bytes)
-                    self.logger.info(f"✅成功将第 {i} 张海报保存到文件夹, file_path: {file_path}")
+                    self._logger.info(f"✅成功将第 {i} 张海报保存到文件夹, file_path: {file_path}")
                 else:
                     # result 可能为 None 或 str(具体错误信息)
-                    self.logger.warning(f"第 {i} 张海报下载失败: {result}")
+                    self._logger.warning(f"第 {i} 张海报下载失败: {result}")
