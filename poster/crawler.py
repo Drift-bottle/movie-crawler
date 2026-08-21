@@ -1,12 +1,14 @@
 from movie.client import Requests
 from movie.utils import logger
+from models import PosterUrl
+
 from httpx import Cookies
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from bs4 import BeautifulSoup
+
 import asyncio
 import logging
 import random
-from models import PosterUrl
 
 
 # ------继承请求类------
@@ -25,6 +27,7 @@ class Poster(Requests):
     async def request_poster_url(self, url: str, **kwargs):
         """
         请求海报 url
+
         Args:
             url: 海报 url
             kwargs: headers请求头, logger(供 @logger 使用)
@@ -66,6 +69,7 @@ class MoviePosterCrawler:
     async def fetch_page(self, resp, key_message, **kwargs):
         """
         抓取+解析网页数据
+
         Args:
             resp: 用于请求的 client
             key_message: 目标网站关键词
