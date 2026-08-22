@@ -36,7 +36,7 @@ class MovieRatingCrawler:
             self,
             key_message: str,
             headers: dict,
-            logger: Optional[logging.Logger] = None
+            **kwargs
     ) -> list | None:
         """
         抓取+解析网页数据
@@ -44,7 +44,7 @@ class MovieRatingCrawler:
         Args:
             key_message: 目标网站页面的一个关键信息
             headers: headers请求头
-            logger: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
         """
         page_num = 1
         url_list = [self._config.start_url] # 储存要请求的 url

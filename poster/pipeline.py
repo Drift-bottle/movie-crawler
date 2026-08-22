@@ -54,7 +54,7 @@ class SaveData:
             resp,
             headers: dict,
             save_doc: str,
-            logger: Optional[logging.Logger] = None
+            **kwargs
     ) -> tuple | str | None:
         """
         并发获取海报图像二进制数据
@@ -66,7 +66,7 @@ class SaveData:
             resp: 用于请求的 client
             headers: 请求头
             save_doc: 储存文件的文件夹
-            logger: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
 
         Returns:
             file_path, image_bytes
@@ -108,7 +108,7 @@ class SaveData:
             headers: dict,
             config: PosterCrawlerConfig,
             cookies: Cookies,
-            logger: Optional[logging.Logger] = None
+            **kwargs
     ) -> None:
         """
         将海报保存到文件夹
@@ -119,7 +119,7 @@ class SaveData:
             headers: 请求头
             config: MovieRatingCrawlerConfig实例
             cookies: 所需的 cookies
-            logger: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
         """
         async with Poster(cookies=cookies, logger=self._logger) as resp:
             poster_obj = MoviePosterCrawler(config=config, logger=self._logger)

@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 import time
 import logging
 from functools import wraps
-from typing import Callable, Any, List
+from typing import Callable, Any
 
 """
 movie-crawler 通用工具模块:
@@ -12,11 +12,11 @@ movie-crawler 通用工具模块:
 """
 
 # ------手动配置日志------
-def logging_configuration(logger_name=None, log_file_name=None):
+def logging_configuration(logger_name=None, log_file_path=None):
     """
     Args:
         logger_name: 创建的 Logger 名称
-        log_file_name: 日志文件的名称
+        log_file_path: 日志文件的路径
     """
     # 创建 Logger
     logger = logging.getLogger(logger_name)
@@ -37,7 +37,7 @@ def logging_configuration(logger_name=None, log_file_name=None):
 
     # 创建文件处理器
     file_handler = logging.FileHandler(
-        log_file_name,
+        log_file_path,
         encoding='utf-8'
     )
     file_handler.setLevel(logging.DEBUG)
@@ -95,15 +95,21 @@ _current_cookies = httpx.Cookies()
         reraise=True  # 达到最大重试次数后抛出原始异常
     )
 @logger
-async def get_position_with_edge_login(target_domains: List[str], **kwargs):
+async def get_position_with_edge_login(
+        target_domains: list[str],
+        cookies_logger: logging.Logger,
+        **kwargs
+) -> httpx.Cookies | None:
     """
-        复用edge登录态获取cookies
-        Args:
-            target_domains: 储存目标网站域的列表
-            kwargs: logger(供 @logger 使用)
+    复用 edge 登录态获取 cookies
+
+    Args:
+        target_domains: 储存目标网站域的列表
+        cookies_logger: logger（logging 的 Logger 实例, 日志记录）
+        **kwargs: logging 的 Logger 实例, 供 @logger 使用
     """
     # 获取 logger
-    courier_logger = kwargs.pop('cookies_logger', logging.getLogger(__name__))
+    courier_logger = cookies_logger or logging.getLogger(__name__)
     async with async_playwright() as p:
         # 清除上一次获取的 cookies
         _current_cookies.clear()

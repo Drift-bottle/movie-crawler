@@ -11,7 +11,7 @@ async def main(config: PosterCrawlerConfig):
     logger.info("\n------开始获取 cookies------")
 
     target_domains = config.target_domains
-    cookies = await get_position_with_edge_login(target_domains ,logger=logger, cookies_logger=logger)
+    cookies = await get_position_with_edge_login(target_domains, cookies_logger=logger, logger=logger)
     # 获取 headers
     _headers = config.headers
     # 创建 SaveData 实例
