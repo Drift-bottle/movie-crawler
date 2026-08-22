@@ -130,7 +130,7 @@ class Requests:
             url: str,
             key_message: str,
             headers: dict,
-            logger: Optional[logging.Logger] = None
+            **kwargs
     ) -> str | None:
         """
         请求指定 URL 并返回响应文本
@@ -139,7 +139,7 @@ class Requests:
             url: 用于发送请求的 url
             key_message: 目标网站页面的一个关键信息
             headers: headers请求头
-            logger: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
         """
         try:
             # 发送请求

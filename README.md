@@ -50,6 +50,7 @@ movie-crawler/
 │ └── pipeline.py 
 ├── storage/ # 数据产出目录（已在 .gitignore 中忽略）
 ├── tests/ # 测试脚本
+│ ├── __init__.py
 │ ├── test_client.py # HTTP 客户端连通性测试
 │ ├── test_logger.py # 日志装饰器测试
 │ └── test_playwright.py # Playwright 环境连通性测试
@@ -145,10 +146,9 @@ python test_playwright.py    # 测试 Playwright 环境
 - **方案**：采用原地更新策略。get_position_with_edge_login 内部通过 _current_cookies.clear() 清空所有现有 Cookie，再逐个重新填充，确保对象引用始终不变。
 
 ## ✅ 测试
-基础冒烟测试已覆盖核心模块:
 - **test_client.py**：验证 HTTP 客户端能正常发起请求并获取响应
 - **test_logger.py**：验证日志装饰器能正确记录函数执行时间
-- **test_playwright.py**：验证 Playwright 环境与 Chromium 内核已就绪
+- **test_playwright.py**：验证 Playwright 环境与 Chromium 内核已就绪（冒烟测试）
 
 
 ## 📄 许可证
