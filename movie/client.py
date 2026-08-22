@@ -9,6 +9,7 @@ import time
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 import logging
+from typing import Optional
 
 
 # ------设置请求类------
@@ -23,7 +24,11 @@ class Requests:
         - robots.txt 校验
         - 基于 tenacity 的指数退避重试
     """
-    def __init__(self, cookies: Cookies=None, logger=None) -> None:
+    def __init__(
+            self,
+            cookies: Optional[Cookies] = None,
+            logger: Optional[logging.Logger] = None
+    ) -> None:
         # 设置请求前钩子, 统一会话
         self._client = httpx.AsyncClient(
             default_encoding=self.smart_encoding_detect,
@@ -38,7 +43,8 @@ class Requests:
         self._logger = logger or logging.getLogger(__name__)
 
     # 请求钩子
-    async def _hook_start_time(self, request: httpx.Request) -> None:
+    @staticmethod
+    async def _hook_start_time(request: httpx.Request) -> None:
         request.headers['x-by-start'] = str(time.perf_counter())
 
     # 响应钩子
@@ -55,16 +61,15 @@ class Requests:
         await self._client.aclose()
 
     # 判断网页是否允许被抓取(url/robots.txt)
-    async def can_fetch(self, url: str, **kwargs) -> bool | None:
+    async def can_fetch(self, url: str, headers: dict) -> bool | None:
         """
         判断给定的 user-agent 是否允许抓取url
 
         Args:
             url: 用于检验是否允许爬取的 url
-            **kwargs: headers请求头, logger(供 @logger 使用)
+            headers: headers请求头
         """
-        headers = kwargs.get('headers', {})
-        user_agent = headers.get('User-Agent', 'Mozilla/5.0 ...')
+        user_agent = headers.get('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0')
 
         # 提取域名,构建 robots.txt 的完整url
         parsed = urlparse(url)
@@ -84,10 +89,10 @@ class Requests:
 
     def smart_encoding_detect(self, content: bytes) -> str | None:
         """
-            智能编码检测器, 集成 Fallback 逻辑
+        智能编码检测器, 集成 Fallback 逻辑
 
-            Args:
-                content: 目标网站返回的 bytes数据
+        Args:
+            content: 目标网站返回的 bytes数据
         """
         self._logger.debug(f"调试: smart_encoding_detect 被调用! 内容长度: {len(content)}")
 
@@ -120,51 +125,58 @@ class Requests:
         reraise=True # 达到最大重试次数后抛出原始异常
     )
     @logger
-    async def inter_face(self, url: str, key_message: str, **kwargs) -> str | None:
+    async def inter_face(
+            self,
+            url: str,
+            key_message: str,
+            headers: dict,
+            logger: Optional[logging.Logger] = None
+    ) -> str | None:
         """
+        请求指定 URL 并返回响应文本
+
         Args:
             url: 用于发送请求的 url
             key_message: 目标网站页面的一个关键信息
-            **kwargs: headers请求头, logger(供 @logger 使用)
+            headers: headers请求头
+            logger: logger(供 @logger 使用)
         """
-        # 发送请求
-        resp = await self._client.get(url, **kwargs)
-
-        response_text = None
-        # 尝试直接获取文本
         try:
-            response_text = resp.text
-        except Exception:
-            raw_content = resp.content
-            encodings_to_try = ["utf-16", "gb2312", "gbk", "utf-8"]
-            for enc in encodings_to_try:
-                try:
-                    response_text = raw_content.decode(enc)
-                    break
-                except Exception as e:
-                    self._logger.error(f"❌手动解码失败: 尝试的编码: {enc} | {type(e).__name__}: {e}")
-                    continue
-            else:
-                # 当所有解码都失败时, 用 chardet 再次解码
-                detected = chardet.detect(raw_content[:4000])
-                if detected.get('encoding'):
-                    response_text = raw_content.decode(detected['encoding'], errors='replace')
+            # 发送请求
+            resp = await self._client.get(url, headers=headers)
+
+            # 尝试直接获取文本
+            try:
+                response_text = resp.text
+            except Exception:
+                raw_content = resp.content
+                encodings_to_try = ["utf-16", "gb2312", "gbk", "utf-8"]
+                for enc in encodings_to_try:
+                    try:
+                        response_text = raw_content.decode(enc)
+                        break
+                    except Exception as e:
+                        self._logger.error(f"❌手动解码失败: 尝试的编码: {enc} | {type(e).__name__}: {e}")
+                        continue
                 else:
-                    # 最终极 Fallback, 用 utf-8 解码, 忽视非法字符
-                    response_text = raw_content.decode('utf-8', errors='replace')
+                    # 当所有解码都失败时, 用 chardet 再次解码
+                    detected = chardet.detect(raw_content[:4000])
+                    if detected.get('encoding'):
+                        response_text = raw_content.decode(detected['encoding'], errors='replace')
+                    else:
+                        # 最终极 Fallback, 用 utf-8 解码, 忽视非法字符
+                        response_text = raw_content.decode('utf-8', errors='replace')
 
-        try:
             if resp.status_code == 200:
                 if key_message not in response_text:
-                    err = f"❌ 状态码为200,但可能遭遇反爬"
-                    self._logger.error(err)
-                    raise Exception(err)
+                    e = f"❌ 状态码为200,但可能遭遇反爬"
+                    self._logger.error(e)
+                    raise Exception(e)
                 else:
                     return response_text
             else:
-                err = f"❌请求失败,状态码；{resp.status_code} | 响应预览: {response_text[:500]}"
-                # 打印前500个字符,查看是否包含异常提示
-                self._logger.error(err)
+                e = f"❌请求失败,状态码；{resp.status_code} | 响应预览: {response_text[:500]}"
+                self._logger.error(e)
         except Exception as e:
             self._logger.error(f"❌出现异常 | {type(e).__name__}: {e}")
             raise e
