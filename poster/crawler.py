@@ -33,7 +33,7 @@ class Poster(Requests):
             self,
             url: str,
             headers: dict,
-            logger: Optional[logging.Logger] = None
+            **kwargs
     ) -> tuple | None:
         """
         请求海报 url
@@ -41,7 +41,7 @@ class Poster(Requests):
         Args:
             url: 海报 url
             headers: headers请求头,
-            logger: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
         """
         # 设置请求头
         headers['referer'] = url
@@ -91,7 +91,7 @@ class MoviePosterCrawler:
             resp,
             key_message: str,
             headers: dict,
-            logger: Optional[logging.Logger] = None
+            **kwargs
     ) -> list | None:
         """
         抓取+解析网页数据
@@ -100,7 +100,7 @@ class MoviePosterCrawler:
             resp: 用于请求的 client
             key_message: 目标网站关键词
             headers: headers请求头,
-            logger: logger(供 @logger 使用)
+            **kwargs: logger(供 @logger 使用)
         """
         page_num = 1
         url_list = [self._config.start_url] # 储存要请求的 url
