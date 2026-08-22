@@ -2,11 +2,12 @@ import logging
 import pandas as pd
 import csv
 import os
+from typing import Optional
 
 
 class SaveData:
     """保存解析后的短评数据"""
-    def __init__(self, data, logger=None) -> None:
+    def __init__(self, data, logger: Optional[logging.Logger] = None) -> None:
         self._data = data # 解析后的数据
         self._logger = logger or logging.getLogger(__name__) # 设置 logger
 
@@ -31,13 +32,13 @@ class SaveData:
             return False
         return not df.empty
 
-    def save_to_csv(self, origin_file: str, static_file: str, filepath_start: str) -> None :
+    def save_to_csv(self, origin_file_path: str, static_file_path: str, filepath_start: str) -> None :
         """
         将数据储存到CSV文件中 | 进行评分统计
 
         Args:
-            origin_file: 保存转换后的初始数据的 csv 文件
-            static_file: 保存统计结果的 csv 文件
+            origin_file_path: 保存转换后的初始数据的 csv 文件
+            static_file_path: 保存统计结果的 csv 文件
             filepath_start: 指定的保存到的文件路径的开头(eg: 'D:\\')
         """
         if len(self._data) == 0:
@@ -46,7 +47,7 @@ class SaveData:
             raise Exception(err)
 
         # 设置 origin_file 路径
-        origin_path = os.path.join(filepath_start, 'movie-crawler', 'storage', origin_file)
+        origin_path = os.path.join(filepath_start, 'movie-crawler', 'storage', origin_file_path)
         # 将转换后的初始数据保存到 csv
         with open(origin_path, 'w', newline='', encoding='utf-8') as f:
             # 获取表头
@@ -75,7 +76,7 @@ class SaveData:
             result['percentage_str'] = result['percentage'].apply(lambda x: f'{x:.1%}')
 
             # 设置 static_file 路径
-            static_path = os.path.join(filepath_start, 'movie-crawler', 'storage' ,static_file)
+            static_path = os.path.join(filepath_start, 'movie-crawler', 'storage' ,static_file_path)
             # 将统计结果保存到 csv
             with open(static_path, 'w', newline='', encoding='utf-8') as f:
                 result.to_csv(f, index=False)

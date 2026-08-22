@@ -1,15 +1,28 @@
 import json
 import os
 import logging
-from typing import List, Any
+from typing import Any, Optional
 
 
 class SaveData:
     """保存解析后的数据"""
-    def __init__(self, data: list[Any], filepath: str, logger=None) -> None:
-        self._data = data # 解析后的数据
-        self._filepath = filepath # 储存 json 数据的完整路径
-        self._logger = logger or logging.getLogger(__name__) # 设置logger
+    def __init__(
+            self,
+            data: list[Any],
+            filepath: str,
+            logger: Optional[logging.Logger] = None
+    ) -> None:
+        """
+        初始化数据保存器
+
+        Args:
+            data: 解析后的数据
+            filepath: 储存 json 数据的完整路径
+            logger: logging.Logger实例
+        """
+        self._data = data
+        self._filepath = filepath
+        self._logger = logger or logging.getLogger(__name__)
 
     def save_to_json(self) -> None:
         """将数据储存到json文件中"""

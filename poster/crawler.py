@@ -1,6 +1,5 @@
-from movie.client import Requests
-from movie.utils import logger
-from models import PosterUrl
+from movie import Requests, logger
+from models import PosterUrl, PosterCrawlerConfig
 
 from httpx import Cookies
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -9,11 +8,17 @@ from bs4 import BeautifulSoup
 import asyncio
 import logging
 import random
+from typing import Optional
+import os
 
 
 # ------继承请求类------
 class Poster(Requests):
-    def __init__(self, cookies: Cookies=None, logger=None) -> None:
+    def __init__(
+            self,
+            cookies: Optional[Cookies] = None,
+            logger: Optional[logging.Logger] = None
+    ) -> None:
         super().__init__(cookies=cookies, logger=logger) # 调用父类 Requests 的 __init__ 方法，传入 cookies 和 logger 依赖
         self._image_semaphore = asyncio.Semaphore(4) # 限制同时请求海报 url 的并发数为 4
 
@@ -24,24 +29,29 @@ class Poster(Requests):
         reraise=True  # 达到最大重试次数后抛出原始异常
     )
     @logger
-    async def request_poster_url(self, url: str, **kwargs) -> tuple | None:
+    async def request_poster_url(
+            self,
+            url: str,
+            headers: dict,
+            logger: Optional[logging.Logger] = None
+    ) -> tuple | None:
         """
         请求海报 url
 
         Args:
             url: 海报 url
-            **kwargs: headers请求头, logger(供 @logger 使用)
+            headers: headers请求头,
+            logger: logger(供 @logger 使用)
         """
         # 设置请求头
-        headers = kwargs.get("headers", {})
         headers['referer'] = url
         async with self._image_semaphore: # 使用信号量控制并发
-            poster_resp = await self._client.get(url, headers=headers, timeout=15)
-
-            hex_str = poster_resp.content[:100].hex()
-            # 把每两个十六进制字符后面加一个空格，方便阅读
-            formatted_hex = ' '.join(hex_str[i:i + 2] for i in range(0, len(hex_str), 2))
             try:
+                poster_resp = await self._client.get(url, headers=headers, timeout=15)
+
+                hex_str = poster_resp.content[:100].hex()
+                # 把每两个十六进制字符后面加一个空格，方便阅读
+                formatted_hex = ' '.join(hex_str[i:i + 2] for i in range(0, len(hex_str), 2))
                 if poster_resp.status_code == 200:
                     content_type = poster_resp.headers.get('content-type', '')
                     return poster_resp.content, content_type
@@ -56,27 +66,44 @@ class Poster(Requests):
 
 # ------设置解析类------
 class MoviePosterCrawler:
-    """
-    functions: 解析网页文本
-    """
-    def __init__(self, logger=None) -> None:
+    """解析网页文本"""
+    def __init__(
+            self,
+            config: PosterCrawlerConfig,
+            logger: Optional[logging.Logger] = None
+    ) -> None:
+        """
+        初始化数据解析器
+
+        Args:
+            config: MovieRatingCrawlerConfig实例
+            logger: logging.Logger实例
+        """
+        self._config = config
+        self._logger = logger or logging.getLogger(__name__)  # 设置 logger
         self._all_data = set() # 用于标题和海报url数据去重
         self._data = [] # 储存最终电影数据
-        self._logger = logger or logging.getLogger(__name__) # 设置 logger
 
     # 获取 title 和 post_url
     @logger
-    async def fetch_page(self, resp, key_message: str, **kwargs) -> list | None:
+    async def fetch_page(
+            self,
+            resp,
+            key_message: str,
+            headers: dict,
+            logger: Optional[logging.Logger] = None
+    ) -> list | None:
         """
         抓取+解析网页数据
 
         Args:
             resp: 用于请求的 client
             key_message: 目标网站关键词
-            **kwargs: headers请求头, logger(供 @logger 使用)
+            headers: headers请求头,
+            logger: logger(供 @logger 使用)
         """
         page_num = 1
-        url_list = ['...'] # 储存要请求的 url
+        url_list = [self._config.start_url] # 储存要请求的 url
         while True:
             self._logger.info(f"正在爬取第{page_num}页")
 
@@ -85,30 +112,30 @@ class MoviePosterCrawler:
 
             url = url_list[-1]
             # 判断网页是否允许被抓取(url/robots.txt)
-            can_fetch = await resp.can_fetch(url, **kwargs)
+            can_fetch = await resp.can_fetch(url, headers)
             if can_fetch:
                 self._logger.info(f"网页允许被抓取: {can_fetch}")
                 # 获取网页html文件
-                html_doc = await resp.inter_face(url, key_message, **kwargs, logger=self._logger)
+                html_doc = await resp.inter_face(url, key_message, headers, logger=self._logger)
                 if html_doc is not None:
                     try:
                         # 开始解析网页
                         soup = BeautifulSoup(html_doc, 'lxml')
-                        items = soup.select('CSS Selector')
+                        items = soup.select(self._config.movie_item_selector)
                         for item in items:
                             # 获取标题
-                            title_tag = item.select_one('CSS Selector')
+                            title_tag = item.select_one(self._config.title_selector)
                             if not title_tag:
                                 self._logger.warning(f"未在第{page_num}页提取到 title 数据")
                                 continue
                             title = title_tag.get_text(strip=True)
 
                             # 获取电影海报 url
-                            poster_tag = item.select_one('CSS Selector')
+                            poster_tag = item.select_one(self._config.poster_url_selector)
                             if not poster_tag:
                                 self._logger.warning(f"未在第{page_num}页提取到 poster_tag 数据")
                                 continue
-                            poster_url = poster_tag['Attribute']
+                            poster_url = poster_tag[self._config.poster_url_attribute]
                             if not poster_url:
                                 self._logger.warning(f"未在第{page_num}页提取到 poster_url 数据")
                                 continue
@@ -125,13 +152,13 @@ class MoviePosterCrawler:
                         self._logger.info(f"请求 {url} 成功, ✅累积爬取 {len(self._data)} 条数据")
 
                         # 获取'下一页'url
-                        next_tag = soup.select_one('CSS Selector')
+                        next_tag = soup.select_one(self._config.next_url_selector)
                         if not next_tag:
                             self._logger.warning(f"未在第{page_num}页提取到 next_tag 数据")
                             break
-                        params = next_tag.get('Attribute')
+                        params = next_tag.get(self._config.next_url_attribute)
                         if params:
-                            new_url = url_list[0] + str(params)
+                            new_url = os.path.join(url_list[0], str(params))
                             self._logger.info(f"当前页数: {page_num} | 成功获取下一页url | params: {params}")
                             url_list.append(new_url)
                         else:
