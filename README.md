@@ -105,10 +105,7 @@ playwright install chrome
 
 ### 运行测试
 ```bash
-cd tests
-python test_client.py        # 测试 HTTP 客户端连通性
-python test_logger.py        # 测试日志装饰器功能
-python test_playwright.py    # 测试 Playwright 环境
+pytest tests/ -v
 ```
 
 
