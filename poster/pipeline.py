@@ -1,5 +1,6 @@
-from movie.utils import logger
+from movie import logger
 from crawler import Poster, MoviePosterCrawler
+from models import PosterCrawlerConfig
 
 from httpx import Cookies
 
@@ -7,12 +8,13 @@ import asyncio
 import logging
 import os
 import random
+from typing import Optional
 
 
 # ------设置保存类------
 class SaveData:
     """保存解析后的海报数据"""
-    def __init__(self, logger=None) -> None:
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._logger = logger or logging.getLogger(__name__) # 设置 logger
 
     @staticmethod
@@ -52,7 +54,7 @@ class SaveData:
             resp,
             headers: dict,
             save_doc: str,
-            **kwargs
+            logger: Optional[logging.Logger] = None
     ) -> tuple | str | None:
         """
         并发获取海报图像二进制数据
@@ -64,7 +66,7 @@ class SaveData:
             resp: 用于请求的 client
             headers: 请求头
             save_doc: 储存文件的文件夹
-            **kwargs: logger(供 @logger 使用)
+            logger: logger(供 @logger 使用)
 
         Returns:
             file_path, image_bytes
@@ -79,7 +81,7 @@ class SaveData:
         else:
             try:
                 # 获取海报图像二进制数据, Content-Type
-                image_bytes, content_type = await resp.request_poster_url(poster_url, headers=headers, logger=self.logger)
+                image_bytes, content_type = await resp.request_poster_url(poster_url, headers, logger=self._logger)
                 # 获取中文名
                 poster_name = title
                 # 检查 Content-Type 是否以 image/ 开头
@@ -104,8 +106,9 @@ class SaveData:
             save_doc: str,
             key_message: str,
             headers: dict,
-            cookies: Cookies | None,
-            **kwargs
+            config: PosterCrawlerConfig,
+            cookies: Cookies,
+            logger: Optional[logging.Logger] = None
     ) -> None:
         """
         将海报保存到文件夹
@@ -114,13 +117,14 @@ class SaveData:
             save_doc: 储存文件的文件夹
             key_message: 目标网站关键词
             headers: 请求头
+            config: MovieRatingCrawlerConfig实例
             cookies: 所需的 cookies
-            **kwargs: logger(供 @logger 使用)
+            logger: logger(供 @logger 使用)
         """
         async with Poster(cookies=cookies, logger=self._logger) as resp:
-            poster_obj = MoviePosterCrawler(self._logger)
+            poster_obj = MoviePosterCrawler(config=config, logger=self._logger)
             # 获取 title 和 poster_url
-            ori_data = await poster_obj.fetch_page(resp, key_message, headers=headers, logger=self.logger)
+            ori_data = await poster_obj.fetch_page(resp, key_message, headers, logger=self._logger)
             # 自动创建文件夹
             os.makedirs(save_doc, exist_ok=True)
 
