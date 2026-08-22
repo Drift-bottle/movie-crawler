@@ -11,8 +11,8 @@ async def main(config: ReviewsCrawlerConfig):
 
     logger.info("\n------开始获取 cookies------")
 
-    _target_domains = config.target_domains
-    cookies = await get_position_with_edge_login(_target_domains, cookies_logger=logger)
+    target_domains = config.target_domains
+    cookies = await get_position_with_edge_login(target_domains, cookies_logger=logger, logger=logger)
     # 获取 headers
     _headers = config.headers
     # 创建爬取类实例
@@ -21,7 +21,7 @@ async def main(config: ReviewsCrawlerConfig):
     logger.info("\n------开始爬取短评和评分数据------")
 
     try:
-        data = await crawler_obj.fetch_page("key_message", _headers, logger=logger)
+        data = await crawler_obj.fetch_page(config.key_message, _headers, logger=logger)
         try:
             save_obj = SaveData(data, logger=logger)
             save_obj.save_to_csv(config.origin_file_path, config.static_file_path)
